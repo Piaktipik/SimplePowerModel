@@ -13,7 +13,7 @@ battery_charge=np.zeros((len(Input),len(Input[0])))
 
 
 #defining the load as a constant
-load= .1 # example value of the load in W
+load= 100 # example value of the load in W
 
 #define the battery capacity
 capacity= 2000 #example of the battery capacity in mAh 
@@ -31,7 +31,7 @@ input_eff=0.4 #example of the input efficiency between 0 and 1
 load_eff=0.7 #example of the load efficiency between 0 and 1
 
 #define the unit of time frequency in seconds
-time=60 #example for sample each minute of the day
+time=3600 #example for sample each minute of the day
 
 #define the selfdischarge rate in percentage per month
 self_desch=2
@@ -42,7 +42,7 @@ self_desch=2
 def delta(Input,batt_charg):
     time_change=(1/3600)*time#a sample per minute
     timech=(1/100)*(1/(30*3600*24))*time
-    a=(Input*input_eff-load/load_eff)*batt_eff*time_change-self_desch*timech*capacity*battery_voltage(batt_charg)/1000
+    a=(Input*input_eff-load/load_eff)*batt_eff*time_change-self_desch*timech*capacity*battery_voltage(batt_charg)*1000
     return a # change of charge in watt/hr
 
 def battery_voltage(charge):

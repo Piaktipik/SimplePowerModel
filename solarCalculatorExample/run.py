@@ -13,6 +13,10 @@ import click
 @click.option('-o', default="result.png", help='Output figure file name (png format)')
 @click.option('--efficiency', default=0.95, prompt='Power conversion efficiency',
               help='Power conversion efficiency')
+@click.option('--efficiencyLoad', default=0.95, prompt='load efficiency',
+              help='load efficiency for the regulator')
+@click.option('--efficiencyBattery', default=0.95, prompt='battery efficiency',
+              help='Power batery charge efficiency')
 @click.option('--panel_watt', default=100.0, prompt='Total rated panel power (Watt)',
               help='Total rated panel power for your system (Watt)')
 @click.option('--battery_capacity', default = 50*12.0, prompt='Total battery power capacity (Watt-hr)',
@@ -35,7 +39,7 @@ import click
 @click.option('--end_time', default=23.0, prompt='End time cut-off (hour 0-23)',
               help='End time cut-off (hour 0-23). Collected PV power after this hour is set to zero. Used to model obstruction at dusk')
 
-def hello(data, efficiency, battery_capacity, panel_watt, power_use_daytime, 
+def hello(data, efficiency, efficiencyLoad, efficiencyBattery, battery_capacity, panel_watt, power_use_daytime,
           power_use_nighttime, power_use_constant, start_time, end_time, o,
           power_use_direct, direct_min_temp):
     """Solar calculation application"""
@@ -45,7 +49,7 @@ def hello(data, efficiency, battery_capacity, panel_watt, power_use_daytime,
 
     top = Problem()
     top.root = Basic(start_time=start_time, end_time=end_time, fns=data,
-                     efficiency = efficiency)
+                     efficiency = efficiency, efficiencyLoad=efficiencyLoad , efficiencyBattery=efficiencyBattery)
     top.setup(check=False)
 
     top['loads.P_constant'] = power_use_constant
@@ -59,7 +63,7 @@ def hello(data, efficiency, battery_capacity, panel_watt, power_use_daytime,
 
     fig = make_plot(top)
 
-    fig.savefig(o, format=o.split(".")[-1], bbox_inches='tight', 
+    fig.savefig(o, format=o.split(".")[-1], bbox_inches='tight',
                pad_inches=0)
 
 if __name__ == '__main__':

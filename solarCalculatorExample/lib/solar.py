@@ -33,12 +33,13 @@ class DataSource(Component):
         # set efficiency from input
         self.efficiency = efficiency
 
+
         # usable PV power only between specified start and end times
         idx = np.where(self.data[:, 2] < start_time)
         self.data[idx, power_idx] = 0.0
         idx = np.where(self.data[:, 2] > end_time)
         self.data[idx, power_idx] = 0.0
-        
+
         # length of time series
         self.n = self.data.shape[0]
 
@@ -99,10 +100,12 @@ class Panels(Component):
 
 class Batteries(Component):
     """Battery model, computed state of charge (SOC) over time"""
-    
-    def __init__(self, n):
+
+    def __init__(self, n, efficiencyLoad= 0.95 , efficiencyBattery= 0.95):
         super(Batteries, self).__init__()
         self.n = n
+        self.efficiencyLoad = efficiencyLoad
+        self.efficiencyBattery = efficiencyBattery
 
         # inputs: battery power capacity, and PV generated power and load
         # consumptions over time
@@ -130,10 +133,10 @@ class Batteries(Component):
             consumed = p['P_consumption'][i]
 
             # Power balance
-            diff = available + generated - consumed
+            diff = available + (generated * self.efficiencyBattery) - ( consumed / self.efficiencyLoad )
 
             # Base SOC calculation: Wh / Wh -> percentage
-            SOC = (diff) / p['power_capacity'] 
+            SOC = (diff) / p['power_capacity']
 
             # Bound between 0 and 100 %
             if SOC > 1.0:
@@ -142,7 +145,7 @@ class Batteries(Component):
                 SOC = 0.0
 
             # trapezoid rule: integral(W * dt, t=hour_i..hour_i+1) = 1 * (W_i+1 - W_i)/2 [units: W*h]
-            u['SOC'][i] = (SOC + u['SOC'][i-1])/2.0 
+            u['SOC'][i] = (SOC + u['SOC'][i-1])/2.0
 
 class Costs(Component):
     """Basic cost model"""
@@ -159,7 +162,3 @@ class Costs(Component):
     def solve_nonlinear(self, p, u, r):
         # cost estimate is $1.33 per panel watt, and $0.20 per battery Wh
         u['cost'] = 1.33 * p['array_power'] + 0.2 * p['power_capacity']
-
-
-
-

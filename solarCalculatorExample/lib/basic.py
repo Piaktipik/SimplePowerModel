@@ -21,7 +21,7 @@ class BasicLoads(Component):
         self.add_param("P_constant", 0.0, units="W")
         self.add_param("P_direct", 0.0, units="W")
         self.add_param("P_daytime", 0.0, units="W")
-        self.add_param("P_nighttime", 0.0, units="W") 
+        self.add_param("P_nighttime", 0.0, units="W")
         self.add_param("switch_temp", 0.0, units="degF")
 
         self.add_param("P_generated", np.zeros(self.n), units="W")
@@ -57,15 +57,15 @@ class BasicLoads(Component):
 
 class Basic(Group):
     """
-    Simple solar PV model. Collects all components, and establishes data 
+    Simple solar PV model. Collects all components, and establishes data
     relationships.
     """
-    def __init__(self, start_time=10, end_time=15, fns=None, efficiency = 0.95):
+    def __init__(self, start_time=10, end_time=15, fns=None, efficiency = 0.95, efficiencyLoad= 0.95 , efficiencyBattery= 0.95):
         super(Basic, self).__init__()
-        
+
         # add NREL data parsing component
-        self.add("data", DataSource(start_time=start_time, end_time=end_time, 
-            fns=fns, efficiency = efficiency))
+        self.add("data", DataSource(start_time=start_time, end_time=end_time,
+            fns=fns, efficiency = efficiency, efficiencyLoad=efficiencyLoad , efficiencyBattery=efficiencyBattery))
         n = self.data.n
 
         # Not necessary at this point, but the variables exposed here can be
@@ -84,7 +84,7 @@ class Basic(Group):
         # Load component
         self.add("loads", BasicLoads(n))
         # Cost component
-        self.add("cost", Costs())   
+        self.add("cost", Costs())
 
         # Data relationships
         self.connect("des_vars.panels_array_power", ["panels.array_power", "cost.array_power"])
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     top = Problem()
     top.root = Basic(start_time=0, end_time=23)
-    
+
     top.setup(check=False)
 
     top['loads.P_constant'] = 0.1
@@ -119,10 +119,7 @@ if __name__ == "__main__":
     top['des_vars.power_capacity'] = 3.7*2 # Watt-hours
 
     top.run()
-    
+
     fig = make_plot(top)
 
     pylab.show()
-
-
-
